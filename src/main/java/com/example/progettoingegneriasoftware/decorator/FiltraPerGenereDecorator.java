@@ -1,6 +1,7 @@
 package com.example.progettoingegneriasoftware.decorator;
 
-import com.example.progettoingegneriasoftware.builder.Libro;
+import com.example.progettoingegneriasoftware.Libreria;
+import com.example.progettoingegneriasoftware.state.Libro;
 
 import java.util.ArrayList;
 
@@ -8,20 +9,8 @@ public class FiltraPerGenereDecorator extends FiltroDecorator{
 
     private Libreria libreria;
 
-    public FiltraPerGenereDecorator(){
-
-    }
-
     public FiltraPerGenereDecorator(LibreriaIF libreria){
         this.libreria = (Libreria) libreria;
-    }
-
-    public Libreria getLibreria(){
-        return libreria;
-    }
-
-    public void setLibreria(Libreria libreria) {
-        this.libreria = libreria;
     }
 
     @Override

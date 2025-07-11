@@ -1,6 +1,13 @@
 package com.example.progettoingegneriasoftware;
 
 
+import com.example.progettoingegneriasoftware.command.Command;
+import com.example.progettoingegneriasoftware.command.LibreriaGraphic;
+import com.example.progettoingegneriasoftware.decorator.FiltroDecorator;
+import com.example.progettoingegneriasoftware.decorator.LibreriaIF;
+import com.example.progettoingegneriasoftware.state.Libro;
+import com.example.progettoingegneriasoftware.state.State;
+import com.example.progettoingegneriasoftware.strategy.Strategy;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -14,14 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Libreria extends LibreriaAbstract implements LibreriaIF{
-    private List<Libro> libri = new ArrayList<>(); //di default i libri sono ordinati in ordine alfabetico
+public class Libreria implements LibreriaIF {
+    private List<Libro> libri = new ArrayList<>();
 
     private FiltroDecorator filtroDecorator;
 
-    private Observer observer;
+    private Command command;
 
-    private State stato;
+    private Strategy stato;
 
     public Libreria(){
 
@@ -36,12 +43,12 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
         this.filtroDecorator = filtroDecorator;
     }
 
-    public Libreria(ArrayList<Libro> libri, LibreriaGraphic observer){
+    public Libreria(ArrayList<Libro> libri, LibreriaGraphic command){
         this.libri = libri;
-        this.observer = observer;
+        this.command = command;
     }
 
-    public Libreria(ArrayList<Libro> libri, State stato){
+    public Libreria(ArrayList<Libro> libri, Strategy stato){
         this.libri = libri;
         this.stato = stato;
     }
@@ -54,19 +61,19 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
         this.libri = libri;
     }
 
-    public Observer getObserver(){
-        return observer;
+    public Command getCommand(){
+        return command;
     }
 
-    public void setObserver(Observer observer){
-        this.observer = observer;
+    public void setCommand(Command command){
+        this.command = command;
     }
 
-    public State getStato() {
+    public Strategy getStato() {
         return stato;
     }
 
-    public void setStato(State stato) {
+    public void setStato(Strategy stato) {
         this.stato = stato;
     }
 
@@ -87,14 +94,12 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
         return libro;
     }
 
-    public List<Libro> cercaLibriByTitolo(String titolo){ //cerca tutti i libri con il titolo "titolo"
+    public List<Libro> cercaLibriByTitolo(String titolo){ //cerca tutti i libri contenenti il titolo "titolo"
         List<Libro> libriTitolo = new ArrayList<>();
         for(Libro libro: libri){
             if(libro.getTitolo().equalsIgnoreCase(titolo) || libro.getTitolo().matches("(?i).*"+titolo+".*"))
                 libriTitolo.add(libro);
         }
-        if(libriTitolo.isEmpty())
-            System.out.println("Nessun Libro trovato");
         return libriTitolo;
     }
 
@@ -104,8 +109,6 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
             if(libro.getAutore().equalsIgnoreCase(autore) || libro.getAutore().matches("(?i).*"+autore+".*"))
                 libriAutore.add(libro);
         }
-        if(libriAutore.isEmpty())
-            System.out.println("Nessun Libro trovato");
         return libriAutore;
     }
 
@@ -115,8 +118,6 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
             if(libro.getGenere().equalsIgnoreCase(genere) || libro.getGenere().matches("(?i).*"+genere+".*"))
                 libriGenere.add(libro);
         }
-        if(libriGenere.isEmpty())
-            System.out.println("Nessun Libro trovato");
         return libriGenere;
     }
 
@@ -140,12 +141,10 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
             if(libro.getStatoLettura().equals(statoLettura))
                 libriStato.add(libro);
         }
-        if(libriStato.isEmpty())
-            System.out.println("Nessun Libro trovato");
         return libriStato;
     }
 
-    public void salva(){ //salva la collezione di libri sul file system in formato JSON o CSV
+    public Libreria salva(){ //salva la collezione di libri sul file system in formato JSON o CSV
         JSONArray jsonArray = new JSONArray();
         for(Libro libro: libri){
             JSONObject jsonObject = new JSONObject();
@@ -158,7 +157,8 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
             jsonArray.add(jsonObject);
         }
         try{
-            FileWriter file = new FileWriter("C:/Users/utente/Desktop/libreria.json");
+            String directory = System.getProperty("user.home");
+            FileWriter file = new FileWriter(directory+"/Desktop/libreria.json");
             file.write("[");
             for(int i=0;i< jsonArray.size();i++){
                 JSONObject object = (JSONObject) jsonArray.get(i);
@@ -168,10 +168,12 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
             }
             file.write("]");
             file.close();
+            return this;
         }
         catch (IOException e){
             e.printStackTrace();
         }
+        return null;
     }
 
     public Libreria carica(){ //carica la collezione di libri dal file system
@@ -179,7 +181,8 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
         ArrayList<Libro> libri = new ArrayList<>();
         JSONParser parser = new JSONParser();
         try{
-            Object object = parser.parse(new FileReader("C:/Users/utente/Desktop/libreria.json"));
+            String directory = System.getProperty("user.home");
+            Object object = parser.parse(new FileReader(directory+"/Desktop/libreria.json"));
             JSONArray jsonArray = (JSONArray) object;
             for(int i=0;i< jsonArray.size();i++){
                 JSONObject jsonObject = (JSONObject) jsonArray.get(i);
@@ -189,7 +192,8 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
                 String genere = (String) jsonObject.get("genere");
                 long valutazione = (Long) jsonObject.get("valutazione");
                 StatoLettura statoLettura = StatoLettura.valueOf((String) jsonObject.get("statoLettura"));
-                Libro libro = new Libro.Builder(titolo,autore, (int) ISBN).genere(genere).valutazione((int) valutazione).statoLettura(statoLettura).build();
+                Libro libro = new Libro(titolo,autore, (int) ISBN,genere, (int) valutazione);
+                libro.setStatoLettura(statoLettura);
                 libri.add(libro);
             }
             libreria.setLibri(libri);
@@ -206,7 +210,7 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
     }
 
     public void notifica(){
-        observer.update(this);
+        command.execute(this);
     }
 
     @Override
@@ -216,11 +220,6 @@ public class Libreria extends LibreriaAbstract implements LibreriaIF{
 
     public void ordina(){
         stato.ordina(this);
-    }
-
-    @Override
-    public LibreriaIteratorIF createIterator(){
-        return new LibreriaIterator(this);
     }
 
     @Override

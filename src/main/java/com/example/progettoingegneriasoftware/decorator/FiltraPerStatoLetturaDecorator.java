@@ -1,7 +1,8 @@
 package com.example.progettoingegneriasoftware.decorator;
 
-import com.example.progettoingegneriasoftware.builder.Libro;
-import com.example.progettoingegneriasoftware.builder.StatoLettura;
+import com.example.progettoingegneriasoftware.Libreria;
+import com.example.progettoingegneriasoftware.StatoLettura;
+import com.example.progettoingegneriasoftware.state.Libro;
 
 import java.util.ArrayList;
 
@@ -9,20 +10,8 @@ public class FiltraPerStatoLetturaDecorator extends FiltroDecorator{
 
     private Libreria libreria;
 
-    public FiltraPerStatoLetturaDecorator(){
-
-    }
-
     public FiltraPerStatoLetturaDecorator(LibreriaIF libreria){
         this.libreria = (Libreria) libreria;
-    }
-
-    public Libreria getLibreria(){
-        return libreria;
-    }
-
-    public void setLibreria(Libreria libreria) {
-        this.libreria = libreria;
     }
 
     @Override
